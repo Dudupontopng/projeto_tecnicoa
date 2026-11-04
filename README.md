@@ -2,7 +2,8 @@
 
 Sistema web que conecta estabelecimentos com alimentos excedentes (mercados, padarias, restaurantes) a instituições que atendem pessoas em situação de vulnerabilidade (ONGs, abrigos, cozinhas comunitárias).
 
-> **Status:** Entrega 1 — Problema, proposta e estrutura inicial.
+> **Status:** Entrega 2 concluída — banco de dados MySQL, cadastro, login, JWT e controle de acesso por perfil.
+> CRUD de doações, reservas e interface web serão feitos na Entrega 3.
 
 ---
 
@@ -121,27 +122,89 @@ Fluxos alternativos:
 
 ---
 
-## 6. Banco de dados (planejamento)
+## 6. Banco de dados
 
-Tabelas previstas, todas com chaves primárias e estrangeiras (script em `sql/ponte_alimentar.sql`, a ser criado na Entrega 2):
+Script completo em [`sql/ponte_alimentar.sql`](sql/ponte_alimentar.sql) (MySQL 8+). Ele recria o banco `ponte_alimentar`, as tabelas, os relacionamentos e as categorias iniciais.
 
-- `usuarios` (id, nome, email, senha_hash, nivel: `admin` | `doador` | `instituicao`, criado_em)
-- `instituicoes` (id, usuario_id → usuarios, nome, endereco, cidade, status_aprovacao)
-- `categorias` (id, nome)
-- `doacoes` (id, doador_id → usuarios, categoria_id → categorias, titulo, descricao, quantidade, unidade, validade, retirada_ate, status)
-- `reservas` (id, doacao_id → doacoes, instituicao_id → instituicoes, status, reservada_em, retirada_em)
+```mermaid
+erDiagram
+    usuarios ||--o| instituicoes : "perfil instituicao"
+    usuarios ||--o{ doacoes : "doador publica"
+    categorias ||--o{ doacoes : "classifica"
+    doacoes ||--o{ reservas : "recebe"
+    instituicoes ||--o{ reservas : "faz"
 
-Relacionamentos: um usuário doador possui várias doações; uma categoria agrupa várias doações; uma doação possui no máximo uma reserva ativa; uma instituição possui várias reservas.
+    usuarios {
+        int id PK
+        varchar nome
+        varchar email UK
+        varchar senha_hash
+        enum nivel "admin, doador, instituicao"
+        timestamp criado_em
+    }
+    instituicoes {
+        int id PK
+        int usuario_id FK,UK
+        varchar nome
+        varchar endereco
+        varchar cidade
+        enum status_aprovacao "pendente, aprovada, recusada"
+    }
+    categorias {
+        int id PK
+        varchar nome UK
+    }
+    doacoes {
+        int id PK
+        int doador_id FK
+        int categoria_id FK
+        varchar titulo
+        text descricao
+        decimal quantidade
+        varchar unidade
+        date validade
+        datetime retirada_ate
+        enum status "disponivel, reservada, retirada, cancelada, expirada"
+    }
+    reservas {
+        int id PK
+        int doacao_id FK
+        int instituicao_id FK
+        enum status "ativa, cancelada, retirada"
+        timestamp reservada_em
+        datetime retirada_em
+    }
+```
+
+| Tabela | Função | Chaves e restrições |
+|---|---|---|
+| `usuarios` | Todos os perfis do sistema | PK `id`; `email` único; `nivel` limitado a admin/doador/instituicao; guarda apenas `senha_hash` |
+| `instituicoes` | Dados extras de quem tem perfil instituição | PK `id`; FK `usuario_id` → `usuarios` (única, relação 1:1); aprovação pelo admin |
+| `categorias` | Tipos de alimento | PK `id`; `nome` único |
+| `doacoes` | Lotes publicados pelos doadores | PK `id`; FK `doador_id` → `usuarios`; FK `categoria_id` → `categorias`; `quantidade > 0` |
+| `reservas` | Reserva de uma doação por uma instituição | PK `id`; FK `doacao_id` → `doacoes`; FK `instituicao_id` → `instituicoes`; **índice único garante só uma reserva ativa por doação** |
 
 ---
 
-## 7. Arquitetura do back-end (planejada)
+## 7. Autenticação e controle de acesso
+
+- **Cadastro** (`POST /auth/cadastro`): valida nome, e-mail, senha (mínimo 8 caracteres) e perfil. O cadastro público aceita apenas `doador` e `instituicao`; **o perfil `admin` não pode ser criado pela API** (é criado pelo `npm run seed`). Instituições são gravadas como `pendente`. Usuário e instituição são salvos em uma **transação** (ou grava tudo, ou nada).
+- **Proteção das senhas:** hash com `bcryptjs` (custo 10). Nenhuma senha em texto puro é gravada ou devolvida pela API.
+- **Login** (`POST /auth/login`): confere e-mail e senha no banco. Para e-mail inexistente ou senha errada a resposta é a mesma (`E-mail ou senha inválidos`), para não revelar quais e-mails existem.
+- **JWT:** no login a API gera um token assinado com `JWT_SECRET` (definido no `.env`), contendo `id` e `nivel`, com validade configurável (`JWT_EXPIRES_IN`, padrão 2h). O cliente envia o token no cabeçalho `Authorization: Bearer <token>`.
+- **Middleware de autenticação** (`autenticacaoMiddleware.js`): rejeita requisições sem token, com token inválido, adulterado ou expirado (401).
+- **Middleware de autorização** (`autorizacaoMiddleware.js`): `permitir('admin')`, `permitir('doador', 'admin')` etc. rejeitam perfis não autorizados (403). A checagem é feita **na API**, não apenas no front-end.
+- **Aprovação de instituições:** o admin aprova ou recusa instituições. O status é devolvido no login e será usado na Entrega 3 para permitir reservas apenas a instituições aprovadas.
+
+---
+
+## 8. Arquitetura do back-end
 
 Padrão: **routes → middlewares → controllers → database**, com `server.js` apenas configurando a aplicação.
 
 ```text
-Front-end (HTML/CSS/JS) ──Fetch + JSON──► API Express
-   └► Middlewares (CORS, autenticação, autorização)
+Cliente (HTML/CSS/JS via Fetch) ──JSON──► API Express (server.js)
+   └► Middlewares (CORS, autenticação JWT, autorização por perfil)
         └► Routes ► Controllers ► SQL parametrizado ► MySQL
 ```
 
@@ -150,74 +213,124 @@ Front-end (HTML/CSS/JS) ──Fetch + JSON──► API Express
 ```text
 ponte-alimentar/
 ├── backend/
-│   ├── routes/          (rotas: método + URL → controller)
-│   ├── controllers/     (validações, regras de negócio e SQL)
-│   ├── middlewares/     (autenticação JWT, autorização, CORS)
-│   ├── database/        (conexão com o MySQL e seed)
-│   └── .env.example
-├── frontend/
+│   ├── server.js                         (configuração do Express e das rotas)
+│   ├── routes/
+│   │   ├── authRoutes.js                 (cadastro, login, perfil)
+│   │   ├── usuariosRoutes.js             (somente admin)
+│   │   └── instituicoesRoutes.js         (somente admin)
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── usuariosController.js
+│   │   └── instituicoesController.js
+│   ├── middlewares/
+│   │   ├── autenticacaoMiddleware.js     (valida o JWT)
+│   │   ├── autorizacaoMiddleware.js      (restringe por perfil)
+│   │   └── corsMiddleware.js
+│   ├── database/
+│   │   ├── conexao.js                    (pool MySQL)
+│   │   └── seed.js                       (cria o administrador inicial)
+│   ├── .env.example
+│   └── package.json
+├── frontend/                             (interface: Entrega 3)
 │   ├── css/
 │   └── js/
-├── sql/                 (scripts do banco de dados)
+├── sql/
+│   └── ponte_alimentar.sql
 ├── .gitignore
 └── README.md
 ```
 
-Arquivos previstos nas próximas entregas:
+### Rotas
 
-```text
-backend/server.js
-backend/routes/          authRoutes.js, usuariosRoutes.js, instituicoesRoutes.js,
-                         categoriasRoutes.js, doacoesRoutes.js, reservasRoutes.js
-backend/controllers/     authController.js, usuariosController.js, instituicoesController.js,
-                         categoriasController.js, doacoesController.js, reservasController.js
-backend/middlewares/     autenticacaoMiddleware.js, autorizacaoMiddleware.js, corsMiddleware.js
-backend/database/        conexao.js, seed.js
-frontend/                login.html, cadastro.html, doador.html, instituicao.html, admin.html
-sql/                     ponte_alimentar.sql
-```
+**Implementadas na Entrega 2**
 
-### Responsabilidades
-- **routes:** associam método HTTP + URL ao controller e aplicam os middlewares.
-- **controllers:** validam os dados, aplicam as regras de negócio e executam o SQL.
-- **middlewares:** `autenticacaoMiddleware` valida o JWT; `autorizacaoMiddleware(...niveis)` restringe por perfil; `corsMiddleware` libera a origem do front-end.
-- **database:** `conexao.js` cria o pool MySQL com variáveis do `.env`; `seed.js` popula dados iniciais.
+| Método | Rota | Acesso | Descrição |
+|---|---|---|---|
+| POST | `/auth/cadastro` | Público | Cadastra doador ou instituição |
+| POST | `/auth/login` | Público | Autentica e devolve o JWT |
+| GET | `/auth/me` | Autenticado | Dados do usuário do token |
+| GET | `/usuarios` | Admin | Lista usuários (sem senha) |
+| GET | `/usuarios/:id` | Admin | Busca usuário por ID |
+| GET | `/instituicoes?status=` | Admin | Lista instituições (filtro opcional) |
+| PUT | `/instituicoes/:id/aprovacao` | Admin | Aprova ou recusa instituição |
 
-### Rotas planejadas
-
-| Método | Rota | Acesso |
-|---|---|---|
-| POST | `/auth/cadastro` | Público |
-| POST | `/auth/login` | Público |
-| GET | `/doacoes` | Autenticado |
-| GET | `/doacoes/:id` | Autenticado |
-| POST | `/doacoes` | Doador, Admin |
-| PUT | `/doacoes/:id` | Doador (dono), Admin |
-| DELETE | `/doacoes/:id` | Doador (dono), Admin |
-| POST | `/reservas` | Instituição aprovada |
-| PUT | `/reservas/:id/cancelar` | Instituição (dona) |
-| PUT | `/reservas/:id/retirada` | Doador (dono da doação) |
-| GET | `/instituicoes` | Admin |
-| PUT | `/instituicoes/:id/aprovacao` | Admin |
-| GET/POST/PUT/DELETE | `/categorias` | Leitura: autenticado; escrita: Admin |
-| GET/PUT/DELETE | `/usuarios` | Admin |
-
-### Segurança
-- Senhas com `bcryptjs`; JWT com segredo no `.env`.
-- SQL sempre parametrizado.
-- `.env`, `node_modules` e credenciais **não** são enviados ao GitHub (veja `.gitignore`).
+**Previstas para a Entrega 3:** `/doacoes` (CRUD completo, doador dono e admin), `/reservas` (instituição aprovada), `/categorias` (leitura autenticada, escrita admin).
 
 ---
 
-## 8. Como executar
+## 9. Como executar
 
-Instruções de instalação, configuração do `.env`, criação do banco e testes serão adicionadas nas próximas entregas, conforme o projeto evoluir.
+**Pré-requisitos:** Node.js 18+ e MySQL 8+.
 
-## 9. Cronograma das entregas
+```bash
+# 1. Clonar e instalar as dependências
+git clone <URL_DO_REPOSITORIO>
+cd ponte-alimentar/backend
+npm install
+
+# 2. Criar o banco, as tabelas e as categorias (executar na raiz do projeto)
+cd ..
+mysql -u root -p < sql/ponte_alimentar.sql
+
+# 3. Configurar o ambiente
+cd backend
+cp .env.example .env
+#   Edite o .env: DB_USER, DB_PASSWORD, JWT_SECRET, ADMIN_EMAIL e ADMIN_SENHA.
+#   Para gerar o JWT_SECRET:
+#   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+
+# 4. Criar o administrador inicial
+npm run seed
+
+# 5. Iniciar a API
+npm start        # ou: npm run dev
+```
+
+A API sobe em `http://localhost:3000` (ou na `PORT` definida no `.env`).
+
+> O arquivo `.env` contém segredos e **não é enviado ao GitHub** (está no `.gitignore`).
+
+## 10. Como testar (exemplos com curl)
+
+```bash
+API=http://localhost:3000
+
+# Cadastro de doador
+curl -X POST $API/auth/cadastro -H "Content-Type: application/json" \
+  -d '{"nome":"Padaria Sol","email":"sol@exemplo.com","senha":"senha12345","nivel":"doador"}'
+
+# Cadastro de instituição (fica pendente até o admin aprovar)
+curl -X POST $API/auth/cadastro -H "Content-Type: application/json" \
+  -d '{"nome":"Maria","email":"abrigo@exemplo.com","senha":"senha12345","nivel":"instituicao","nome_instituicao":"Abrigo Esperança","endereco":"Rua A, 10","cidade":"Santa Cruz do Sul"}'
+
+# Login (copie o "token" da resposta)
+curl -X POST $API/auth/login -H "Content-Type: application/json" \
+  -d '{"email":"sol@exemplo.com","senha":"senha12345"}'
+
+# Rota protegida
+curl $API/auth/me -H "Authorization: Bearer SEU_TOKEN"
+```
+
+Resultados esperados:
+
+| Teste | Resultado |
+|---|---|
+| Cadastro válido | 201 |
+| E-mail repetido | 409 |
+| Cadastro com `"nivel":"admin"` | 400 |
+| Senha com menos de 8 caracteres | 400 |
+| Login com senha errada ou e-mail inexistente | 401 (mesma mensagem) |
+| `/auth/me` sem token, com token inválido ou expirado | 401 |
+| `GET /usuarios` com token de doador ou instituição | 403 |
+| `GET /usuarios` com token de admin | 200 |
+| `PUT /instituicoes/:id/aprovacao` com token de doador | 403 |
+| `PUT /instituicoes/:id/aprovacao` com token de admin | 200 |
+
+## 11. Cronograma das entregas
 
 | Entrega | Foco | Situação |
 |---|---|---|
-| 1 | Problema, proposta e estrutura inicial | Em entrega |
-| 2 | Banco de dados, autenticação e JWT | Pendente |
+| 1 | Problema, proposta e estrutura inicial | Concluída |
+| 2 | Banco de dados, autenticação e JWT | Concluída |
 | 3 | CRUD, integração e permissões | Pendente |
 | 4 | Projeto completo, documentação e apresentação | Pendente |
