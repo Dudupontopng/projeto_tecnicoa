@@ -19,8 +19,6 @@ O problema não é apenas a falta de alimento, mas a **falta de comunicação or
 - instituições que não sabem o que está disponível nem quando retirar;
 - falta de registro e acompanhamento do que foi doado e retirado.
 
-> **Dado de apoio (preencher antes de entregar):** inserir aqui 1 ou 2 dados oficiais sobre desperdício de alimentos e insegurança alimentar no Brasil, com a fonte citada (ex.: FAO, IBGE, Rede PENSSAN).
-
 ### Público afetado
 - **Estabelecimentos doadores:** perdem alimento e não têm canal simples para doar.
 - **Instituições sociais:** têm dificuldade de acessar alimentos e de planejar a retirada.
@@ -94,7 +92,7 @@ HTML5, CSS3, JavaScript (DOM + Fetch), Node.js, Express, MySQL, `mysql2`, `jsonw
 | **Instituição** | ONG, abrigo, cozinha comunitária | Cadastrar-se (aguarda aprovação); ver doações disponíveis; reservar e cancelar **suas** reservas; ver seu histórico |
 | **Administrador** | Responsável pela plataforma | Aprovar/recusar instituições; gerenciar usuários e categorias; ver e moderar todas as doações; ver indicadores |
 
-> As permissões serão validadas **na API** (middleware de autorização + conferência de dono do recurso no controller), e não apenas escondendo botões ou páginas no front-end.
+> As permissões são validadas **na API** (middleware de autorização + conferência de dono do recurso no controller), e não apenas escondendo botões ou páginas no front-end.
 
 ---
 
@@ -258,75 +256,7 @@ ponte-alimentar/
 
 ---
 
-## 9. Como executar
-
-**Pré-requisitos:** Node.js 18+ e MySQL 8+.
-
-```bash
-# 1. Clonar e instalar as dependências
-git clone <URL_DO_REPOSITORIO>
-cd ponte-alimentar/backend
-npm install
-
-# 2. Criar o banco, as tabelas e as categorias (executar na raiz do projeto)
-cd ..
-mysql -u root -p < sql/ponte_alimentar.sql
-
-# 3. Configurar o ambiente
-cd backend
-cp .env.example .env
-#   Edite o .env: DB_USER, DB_PASSWORD, JWT_SECRET, ADMIN_EMAIL e ADMIN_SENHA.
-#   Para gerar o JWT_SECRET:
-#   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-
-# 4. Criar o administrador inicial
-npm run seed
-
-# 5. Iniciar a API
-npm start        # ou: npm run dev
-```
-
-A API sobe em `http://localhost:3000` (ou na `PORT` definida no `.env`).
-
-> O arquivo `.env` contém segredos e **não é enviado ao GitHub** (está no `.gitignore`).
-
-## 10. Como testar (exemplos com curl)
-
-```bash
-API=http://localhost:3000
-
-# Cadastro de doador
-curl -X POST $API/auth/cadastro -H "Content-Type: application/json" \
-  -d '{"nome":"Padaria Sol","email":"sol@exemplo.com","senha":"senha12345","nivel":"doador"}'
-
-# Cadastro de instituição (fica pendente até o admin aprovar)
-curl -X POST $API/auth/cadastro -H "Content-Type: application/json" \
-  -d '{"nome":"Maria","email":"abrigo@exemplo.com","senha":"senha12345","nivel":"instituicao","nome_instituicao":"Abrigo Esperança","endereco":"Rua A, 10","cidade":"Santa Cruz do Sul"}'
-
-# Login (copie o "token" da resposta)
-curl -X POST $API/auth/login -H "Content-Type: application/json" \
-  -d '{"email":"sol@exemplo.com","senha":"senha12345"}'
-
-# Rota protegida
-curl $API/auth/me -H "Authorization: Bearer SEU_TOKEN"
-```
-
-Resultados esperados:
-
-| Teste | Resultado |
-|---|---|
-| Cadastro válido | 201 |
-| E-mail repetido | 409 |
-| Cadastro com `"nivel":"admin"` | 400 |
-| Senha com menos de 8 caracteres | 400 |
-| Login com senha errada ou e-mail inexistente | 401 (mesma mensagem) |
-| `/auth/me` sem token, com token inválido ou expirado | 401 |
-| `GET /usuarios` com token de doador ou instituição | 403 |
-| `GET /usuarios` com token de admin | 200 |
-| `PUT /instituicoes/:id/aprovacao` com token de doador | 403 |
-| `PUT /instituicoes/:id/aprovacao` com token de admin | 200 |
-
-## 11. Cronograma das entregas
+## 9. Cronograma das entregas
 
 | Entrega | Foco | Situação |
 |---|---|---|
