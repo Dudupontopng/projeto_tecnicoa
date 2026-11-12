@@ -9,6 +9,8 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || 'ponte_alimentar',
   waitForConnections: true,
   connectionLimit: 10,
+  dateStrings: true,     // DATE/DATETIME chegam como texto 'AAAA-MM-DD' (sem conversão de fuso)
+  decimalNumbers: true,  // DECIMAL chega como número, não como texto
 });
 
 module.exports = pool;

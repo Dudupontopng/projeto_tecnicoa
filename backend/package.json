@@ -1,7 +1,7 @@
 {
   "name": "ponte-alimentar-backend",
-  "version": "0.2.0",
-  "description": "API da Ponte Alimentar - Entrega 2 (banco de dados e autenticacao)",
+  "version": "0.3.0",
+  "description": "API da Ponte Alimentar - Entrega 3 (CRUD, reservas e permissoes)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -4,7 +4,7 @@
 function permitir(...niveisPermitidos) {
   return (req, res, next) => {
     if (!req.usuario) {
-      return res.status(401).json({ erro: 'Usuario nao autenticado.' });
+      return res.status(401).json({ erro: 'Usuário não autenticado.' });
     }
     if (!niveisPermitidos.includes(req.usuario.nivel)) {
       return res.status(403).json({ erro: 'Acesso negado para o seu perfil.' });

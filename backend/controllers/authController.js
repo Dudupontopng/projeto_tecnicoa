@@ -26,13 +26,13 @@ async function cadastrar(req, res) {
   const nivel = texto(req.body.nivel);
 
   if (nome.length < 3) {
-    return res.status(400).json({ erro: 'Informe o nome (minimo 3 caracteres).' });
+    return res.status(400).json({ erro: 'Informe o nome (mínimo 3 caracteres).' });
   }
   if (!EMAIL_REGEX.test(email)) {
-    return res.status(400).json({ erro: 'Informe um e-mail valido.' });
+    return res.status(400).json({ erro: 'Informe um e-mail válido.' });
   }
   if (senha.length < 8) {
-    return res.status(400).json({ erro: 'A senha deve ter no minimo 8 caracteres.' });
+    return res.status(400).json({ erro: 'A senha deve ter no mínimo 8 caracteres.' });
   }
   if (!NIVEIS_CADASTRO.includes(nivel)) {
     return res.status(400).json({ erro: "O perfil deve ser 'doador' ou 'instituicao'." });
@@ -47,7 +47,7 @@ async function cadastrar(req, res) {
     };
     if (!instituicao.nome || !instituicao.endereco || !instituicao.cidade) {
       return res.status(400).json({
-        erro: 'Instituicoes devem informar nome_instituicao, endereco e cidade.',
+        erro: 'Instituições devem informar nome_instituicao, endereco e cidade.',
       });
     }
   }
@@ -73,14 +73,14 @@ async function cadastrar(req, res) {
     return res.status(201).json({
       mensagem:
         nivel === 'instituicao'
-          ? 'Cadastro realizado. Aguarde a aprovacao de um administrador para reservar doacoes.'
+          ? 'Cadastro realizado. Aguarde a aprovação de um administrador para reservar doações.'
           : 'Cadastro realizado com sucesso.',
       usuario: { id: resultado.insertId, nome, email, nivel },
     });
   } catch (erro) {
     await conexao.rollback();
     if (erro.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ erro: 'Ja existe um usuario com este e-mail.' });
+      return res.status(409).json({ erro: 'Já existe um usuário com este e-mail.' });
     }
     console.error('Erro no cadastro:', erro);
     return res.status(500).json({ erro: 'Erro interno ao realizar o cadastro.' });
@@ -111,7 +111,7 @@ async function login(req, res) {
     // Mesma mensagem para "e-mail inexistente" e "senha errada" (nao revela qual falhou).
     const senhaCorreta = await bcrypt.compare(senha, usuario ? usuario.senha_hash : HASH_FALSO);
     if (!usuario || !senhaCorreta) {
-      return res.status(401).json({ erro: 'E-mail ou senha invalidos.' });
+      return res.status(401).json({ erro: 'E-mail ou senha inválidos.' });
     }
 
     const resposta = {
@@ -143,7 +143,7 @@ async function perfil(req, res) {
       [req.usuario.id]
     );
     if (linhas.length === 0) {
-      return res.status(404).json({ erro: 'Usuario nao encontrado.' });
+      return res.status(404).json({ erro: 'Usuário não encontrado.' });
     }
     return res.json(linhas[0]);
   } catch (erro) {

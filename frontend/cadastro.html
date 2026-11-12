@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro | Ponte Alimentar</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>Criar conta</h1>
+      <p class="sub">Escolha como você vai participar da Ponte Alimentar.</p>
+
+      <form id="form-cadastro" novalidate>
+        <label for="nivel">Eu sou</label>
+        <select id="nivel">
+          <option value="doador">Doador (mercado, padaria, restaurante...)</option>
+          <option value="instituicao">Instituição (ONG, abrigo, cozinha comunitária...)</option>
+        </select>
+
+        <label for="nome">Seu nome</label>
+        <input id="nome" type="text" autocomplete="name" required>
+
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="username" required>
+
+        <label for="senha">Senha (mínimo 8 caracteres)</label>
+        <input id="senha" type="password" autocomplete="new-password" minlength="8" required>
+
+        <div id="campos-instituicao" class="escondido">
+          <label for="nome_instituicao">Nome da instituição</label>
+          <input id="nome_instituicao" type="text">
+          <label for="endereco">Endereço</label>
+          <input id="endereco" type="text">
+          <label for="cidade">Cidade</label>
+          <input id="cidade" type="text">
+          <p class="msg-form">Instituições precisam ser aprovadas por um administrador antes de reservar doações.</p>
+        </div>
+
+        <button class="btn btn-bloco" type="submit" id="btn-cadastrar">Cadastrar</button>
+        <div id="msg" class="aviso msg-form escondido"></div>
+      </form>
+
+      <p class="auth-rodape">Já tem conta? <a href="login.html">Entrar</a></p>
+    </div>
+  </div>
+  <script src="js/api.js"></script>
+  <script src="js/cadastro.js"></script>
+</body>
+</html>

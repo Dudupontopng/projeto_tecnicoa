@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel da Instituição | Ponte Alimentar</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-conteudo">
+      <span class="marca">Ponte Alimentar</span>
+      <div class="topo-usuario">
+        <span id="nome-usuario"></span>
+        <button class="btn btn-sec btn-peq" id="btn-sair" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="aviso-aprovacao" class="aviso escondido"></div>
+
+    <div class="abas">
+      <button class="aba ativa" type="button" data-alvo="disponiveis">Doações disponíveis</button>
+      <button class="aba" type="button" data-alvo="reservas">Minhas reservas</button>
+    </div>
+
+    <section data-secao="disponiveis">
+      <div class="filtros">
+        <div>
+          <label for="filtro-categoria">Categoria</label>
+          <select id="filtro-categoria"></select>
+        </div>
+        <div>
+          <label for="filtro-validade">Validade até</label>
+          <input id="filtro-validade" type="date">
+        </div>
+        <div style="flex: 0 0 auto;">
+          <button class="btn btn-sec" id="btn-limpar" type="button">Limpar filtros</button>
+        </div>
+      </div>
+      <div id="lista-disponiveis" class="lista"></div>
+    </section>
+
+    <section data-secao="reservas" class="escondido">
+      <div id="lista-reservas" class="lista"></div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/instituicao.js"></script>
+</body>
+</html>

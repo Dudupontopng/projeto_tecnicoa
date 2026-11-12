@@ -2,8 +2,8 @@
 
 Sistema web que conecta estabelecimentos com alimentos excedentes (mercados, padarias, restaurantes) a instituições que atendem pessoas em situação de vulnerabilidade (ONGs, abrigos, cozinhas comunitárias).
 
-> **Status:** Entrega 2 concluída — banco de dados MySQL, cadastro, login, JWT e controle de acesso por perfil.
-> CRUD de doações, reservas e interface web serão feitos na Entrega 3.
+> **Status:** Entrega 3 concluída — CRUD completo de doações, reservas, permissões por perfil verificadas na API e interface web (HTML, CSS e JavaScript com DOM e Fetch).
+> Entregas anteriores: 1 (problema e estrutura) e 2 (banco de dados, cadastro, login e JWT).
 
 ---
 
@@ -18,6 +18,12 @@ O problema não é apenas a falta de alimento, mas a **falta de comunicação or
 - doadores sem canal simples para oferecer o excedente;
 - instituições que não sabem o que está disponível nem quando retirar;
 - falta de registro e acompanhamento do que foi doado e retirado.
+
+### Dados oficiais
+- **Desperdício no mundo:** segundo o Relatório do Índice de Desperdício de Alimentos 2024 do Programa das Nações Unidas para o Meio Ambiente (UNEP), foram desperdiçadas cerca de **1,05 bilhão de toneladas de alimentos em 2022**, aproximadamente **19% de todo o alimento disponível aos consumidores**. No mesmo ano, 783 milhões de pessoas passaram fome no mundo e cerca de um terço da humanidade enfrentou insegurança alimentar. O varejo e os serviços de alimentação (mercados, padarias, restaurantes) respondem por 12% e 28% do total desperdiçado, respectivamente. [1]
+- **Insegurança alimentar no Brasil:** segundo a PNAD Contínua – Segurança Alimentar 2024, do IBGE, **24,2% dos domicílios brasileiros** (cerca de 18,9 milhões de lares, onde vivem aproximadamente 54,7 milhões de pessoas) conviviam com algum grau de insegurança alimentar. Houve melhora em relação a 2023 (27,6%), mas aproximadamente um em cada quatro domicílios continua nessa situação. [2]
+
+Os números mostram o contraste que motiva o projeto: há alimento sendo perdido em toda a cadeia enquanto milhões de pessoas ainda não têm acesso regular à comida. A Ponte Alimentar atua justamente na etapa em que o alimento excedente de estabelecimentos pode chegar a quem atende essas famílias.
 
 ### Público afetado
 - **Estabelecimentos doadores:** perdem alimento e não têm canal simples para doar.
@@ -53,34 +59,23 @@ HTML5, CSS3, JavaScript (DOM + Fetch), Node.js, Express, MySQL, `mysql2`, `jsonw
 
 ---
 
-## 3. Funcionalidades previstas
+## 3. Funcionalidades
 
-**Gerais**
-- Cadastro e login com senha protegida (hash) e autenticação por JWT.
-- Redirecionamento e acesso conforme o perfil do usuário.
+### Implementadas (Entregas 1 a 3)
 
-**Doações (CRUD principal)**
-- Publicar, listar, consultar, editar e excluir doações.
-- Filtrar doações por categoria, status e validade.
+| Área | Funcionalidade |
+|---|---|
+| Acesso | Cadastro de doador e instituição; login com JWT; senhas com hash; proteção de rotas por perfil |
+| Doações | **CRUD completo** (criar, listar, consultar, editar, excluir); filtros por categoria, status e validade; republicação de doações expiradas |
+| Reservas | Reservar doação disponível; cancelar reserva (a doação volta a ficar disponível); confirmar retirada |
+| Administração | Aprovar ou recusar instituições; CRUD de categorias; listar usuários; ver e excluir qualquer doação; resumo com totais |
+| Interface | Páginas de login, cadastro e um painel para cada perfil (doador, instituição, administrador) |
 
-**Reservas**
-- Reservar uma doação disponível.
-- Cancelar uma reserva (a doação volta a ficar disponível).
-- Confirmar a retirada.
-
-**Administração**
-- Aprovar ou recusar o cadastro de instituições.
-- Listar e gerenciar usuários.
-- Gerenciar categorias de alimentos.
-- Visualizar o histórico geral e indicadores simples (total de doações, retiradas, quantidade doada).
-
-**Regras de negócio**
-- Não é possível publicar doação com validade já vencida.
-- Apenas instituições **aprovadas** podem reservar.
-- Um lote só pode ter **uma reserva ativa** por vez.
-- O doador só edita ou exclui as **próprias** doações, e somente enquanto estiverem *disponíveis*.
-- Doações vencidas passam automaticamente para o status *expirada*.
-- Uma doação *retirada* não pode mais ser alterada ou excluída (preserva o histórico).
+### Previstas para a Entrega 4
+- Edição e exclusão de usuários pelo administrador (hoje há apenas a listagem).
+- Histórico e indicadores mais completos (quantidade total doada, por período).
+- Refinamento do tratamento de erros e da apresentação final.
+- README final com instalação, execução e instruções de teste.
 
 ---
 
@@ -88,11 +83,11 @@ HTML5, CSS3, JavaScript (DOM + Fetch), Node.js, Express, MySQL, `mysql2`, `jsonw
 
 | Perfil | Quem é | Ações permitidas |
 |---|---|---|
-| **Doador** | Estabelecimento com excedente | Cadastrar-se; criar, editar e excluir **suas** doações; ver reservas de suas doações; confirmar retirada |
-| **Instituição** | ONG, abrigo, cozinha comunitária | Cadastrar-se (aguarda aprovação); ver doações disponíveis; reservar e cancelar **suas** reservas; ver seu histórico |
-| **Administrador** | Responsável pela plataforma | Aprovar/recusar instituições; gerenciar usuários e categorias; ver e moderar todas as doações; ver indicadores |
+| **Doador** | Estabelecimento com excedente | Cadastrar-se; criar, editar e excluir **suas** doações; ver as reservas de suas doações; confirmar retirada |
+| **Instituição** | ONG, abrigo, cozinha comunitária | Cadastrar-se (aguarda aprovação); ver doações disponíveis; reservar (se aprovada) e cancelar **suas** reservas; ver seu histórico |
+| **Administrador** | Responsável pela plataforma | Aprovar/recusar instituições; listar usuários; gerenciar categorias; ver e excluir qualquer doação; cancelar reservas |
 
-> As permissões são validadas **na API** (middleware de autorização + conferência de dono do recurso no controller), e não apenas escondendo botões ou páginas no front-end.
+> As permissões são validadas **na API** (middleware de autorização + conferência do dono do recurso no controller), e não apenas escondendo botões ou páginas no front-end. Um doador que tente chamar uma rota de administrador diretamente recebe `403`, mesmo sem usar a interface.
 
 ---
 
@@ -110,19 +105,21 @@ DOADOR                      INSTITUIÇÃO                 ADMINISTRADOR
   │                              │ reserva (status: reservada)│
   │ ◄──── vê a reserva ──────────│                            │
   │ confirma retirada            │                            │
-  │ (status: retirada)           │ histórico atualizado       │ acompanha indicadores
+  │ (status: retirada)           │ histórico atualizado       │ acompanha o resumo
 ```
 
 Fluxos alternativos:
 - A instituição cancela a reserva e a doação volta para *disponível*.
-- A validade passa e a doação é marcada como *expirada*.
-- O doador cancela a doação antes de qualquer reserva.
+- A validade ou o prazo de retirada passa e a doação é marcada como *expirada* (o doador pode editar as datas para publicá-la novamente).
+- O doador exclui a doação antes de qualquer reserva.
 
 ---
 
 ## 6. Banco de dados
 
-Script completo em [`sql/ponte_alimentar.sql`](sql/ponte_alimentar.sql) (MySQL 8+). Ele recria o banco `ponte_alimentar`, as tabelas, os relacionamentos e as categorias iniciais.
+Script de instalação em [`sql/ponte_alimentar.sql`](sql/ponte_alimentar.sql) (MySQL 8+). Ele cria o banco `ponte_alimentar`, as tabelas, os relacionamentos e as categorias iniciais **sem apagar nada**: usa `CREATE ... IF NOT EXISTS` e pode ser executado novamente preservando usuários, doações e todo o histórico (as categorias iniciais só são inseridas quando a tabela está vazia).
+
+Para recomeçar do zero em desenvolvimento existe um arquivo separado e identificado, [`sql/reset_banco_desenvolvimento.sql`](sql/reset_banco_desenvolvimento.sql), que **apaga o banco inteiro** e não deve ser usado com dados reais.
 
 ```mermaid
 erDiagram
@@ -186,17 +183,38 @@ erDiagram
 
 ## 7. Autenticação e controle de acesso
 
-- **Cadastro** (`POST /auth/cadastro`): valida nome, e-mail, senha (mínimo 8 caracteres) e perfil. O cadastro público aceita apenas `doador` e `instituicao`; **o perfil `admin` não pode ser criado pela API** (é criado pelo `npm run seed`). Instituições são gravadas como `pendente`. Usuário e instituição são salvos em uma **transação** (ou grava tudo, ou nada).
+- **Cadastro** (`POST /auth/cadastro`): valida nome, e-mail, senha (mínimo 8 caracteres) e perfil. O cadastro público aceita apenas `doador` e `instituicao`; **o perfil `admin` não pode ser criado pela API** (é criado pelo `npm run seed`). Instituições são gravadas como `pendente`. Usuário e instituição são salvos em uma **transação**.
 - **Proteção das senhas:** hash com `bcryptjs` (custo 10). Nenhuma senha em texto puro é gravada ou devolvida pela API.
-- **Login** (`POST /auth/login`): confere e-mail e senha no banco. Para e-mail inexistente ou senha errada a resposta é a mesma (`E-mail ou senha inválidos`), para não revelar quais e-mails existem.
-- **JWT:** no login a API gera um token assinado com `JWT_SECRET` (definido no `.env`), contendo `id` e `nivel`, com validade configurável (`JWT_EXPIRES_IN`, padrão 2h). O cliente envia o token no cabeçalho `Authorization: Bearer <token>`.
+- **Login** (`POST /auth/login`): para e-mail inexistente ou senha errada a resposta é a mesma, para não revelar quais e-mails existem.
+- **JWT:** o token é assinado com `JWT_SECRET` (definido no `.env`), contém `id` e `nivel` e tem validade configurável (padrão 2h). O cliente o envia no cabeçalho `Authorization: Bearer <token>`.
 - **Middleware de autenticação** (`autenticacaoMiddleware.js`): rejeita requisições sem token, com token inválido, adulterado ou expirado (401).
-- **Middleware de autorização** (`autorizacaoMiddleware.js`): `permitir('admin')`, `permitir('doador', 'admin')` etc. rejeitam perfis não autorizados (403). A checagem é feita **na API**, não apenas no front-end.
-- **Aprovação de instituições:** o admin aprova ou recusa instituições. O status é devolvido no login e será usado na Entrega 3 para permitir reservas apenas a instituições aprovadas.
+- **Middleware de autorização** (`autorizacaoMiddleware.js`): `permitir('admin')`, `permitir('doador', 'admin')` etc. rejeitam perfis não autorizados (403).
+- **Conferência do dono do recurso:** além do perfil, os controllers verificam se a doação ou reserva pertence a quem está pedindo (um doador não altera a doação de outro; uma instituição não cancela a reserva de outra).
+- **Aprovação da instituição** é conferida no banco a cada reserva (e não no token), pois o status pode mudar depois do login.
 
 ---
 
-## 8. Arquitetura do back-end
+## 8. Regras de negócio e validações (back-end)
+
+| Regra | Onde é garantida |
+|---|---|
+| Título (3 a 150 caracteres), quantidade maior que zero, unidade e categoria válidas | `doacoesController` (validação) e `CHECK` no banco |
+| Não é possível publicar doação com validade vencida | `doacoesController` |
+| O prazo de retirada deve estar no futuro e não pode ser posterior à validade | `doacoesController` |
+| Apenas instituições **aprovadas** reservam | `reservasController` (consulta o status no banco) |
+| Um lote só tem **uma reserva ativa** por vez | Transação com `SELECT ... FOR UPDATE` + índice único em `reservas` |
+| O doador só edita ou exclui as **próprias** doações | `doacoesController` (dono ou admin) |
+| Doação reservada ou retirada não pode ser editada nem excluída | `doacoesController` (409) |
+| Doações vencidas viram *expiradas* automaticamente | `database/rotinas.js`, executada ao listar, consultar e reservar |
+| Cancelar a reserva devolve a doação para *disponível* | `reservasController` (transação) |
+| Só o doador dono (ou admin) confirma a retirada | `reservasController` |
+| Categoria em uso não pode ser excluída | Chave estrangeira + tratamento do erro (409) |
+
+Códigos de resposta usados: `200`/`201` sucesso, `400` dados inválidos, `401` não autenticado, `403` sem permissão, `404` não encontrado, `409` conflito com o estado atual do recurso, `500` erro interno.
+
+---
+
+## 9. Arquitetura do back-end
 
 Padrão: **routes → middlewares → controllers → database**, com `server.js` apenas configurando a aplicação.
 
@@ -211,36 +229,47 @@ Cliente (HTML/CSS/JS via Fetch) ──JSON──► API Express (server.js)
 ```text
 ponte-alimentar/
 ├── backend/
-│   ├── server.js                         (configuração do Express e das rotas)
+│   ├── server.js                         (configura o Express, a API e o front-end estático)
 │   ├── routes/
 │   │   ├── authRoutes.js                 (cadastro, login, perfil)
-│   │   ├── usuariosRoutes.js             (somente admin)
-│   │   └── instituicoesRoutes.js         (somente admin)
+│   │   ├── usuariosRoutes.js             (admin)
+│   │   ├── instituicoesRoutes.js         (admin)
+│   │   ├── categoriasRoutes.js           (leitura: logado; escrita: admin)
+│   │   ├── doacoesRoutes.js              (CRUD de doações)
+│   │   └── reservasRoutes.js             (reservar, cancelar, confirmar retirada)
 │   ├── controllers/
 │   │   ├── authController.js
 │   │   ├── usuariosController.js
-│   │   └── instituicoesController.js
+│   │   ├── instituicoesController.js
+│   │   ├── categoriasController.js
+│   │   ├── doacoesController.js
+│   │   └── reservasController.js
 │   ├── middlewares/
 │   │   ├── autenticacaoMiddleware.js     (valida o JWT)
 │   │   ├── autorizacaoMiddleware.js      (restringe por perfil)
 │   │   └── corsMiddleware.js
 │   ├── database/
 │   │   ├── conexao.js                    (pool MySQL)
+│   │   ├── rotinas.js                    (expiração de doações, busca de instituição)
 │   │   └── seed.js                       (cria o administrador inicial)
 │   ├── .env.example
 │   └── package.json
-├── frontend/                             (interface: Entrega 3)
-│   ├── css/
+├── frontend/
+│   ├── login.html  cadastro.html
+│   ├── doador.html  instituicao.html  admin.html
+│   ├── css/style.css
 │   └── js/
+│       ├── api.js                        (sessão, Fetch, utilitários de DOM)
+│       ├── login.js  cadastro.js
+│       └── doador.js  instituicao.js  admin.js
 ├── sql/
-│   └── ponte_alimentar.sql
+│   ├── ponte_alimentar.sql               (instalação segura: não apaga dados)
+│   └── reset_banco_desenvolvimento.sql   (DESTRUTIVO: só para desenvolvimento)
 ├── .gitignore
 └── README.md
 ```
 
-### Rotas
-
-**Implementadas na Entrega 2**
+### Rotas da API
 
 | Método | Rota | Acesso | Descrição |
 |---|---|---|---|
@@ -249,18 +278,53 @@ ponte-alimentar/
 | GET | `/auth/me` | Autenticado | Dados do usuário do token |
 | GET | `/usuarios` | Admin | Lista usuários (sem senha) |
 | GET | `/usuarios/:id` | Admin | Busca usuário por ID |
-| GET | `/instituicoes?status=` | Admin | Lista instituições (filtro opcional) |
+| GET | `/instituicoes?status=` | Admin | Lista instituições |
 | PUT | `/instituicoes/:id/aprovacao` | Admin | Aprova ou recusa instituição |
-
-**Previstas para a Entrega 3:** `/doacoes` (CRUD completo, doador dono e admin), `/reservas` (instituição aprovada), `/categorias` (leitura autenticada, escrita admin).
+| GET | `/categorias` | Autenticado | Lista categorias |
+| POST | `/categorias` | Admin | Cria categoria |
+| PUT | `/categorias/:id` | Admin | Renomeia categoria |
+| DELETE | `/categorias/:id` | Admin | Exclui categoria (se não estiver em uso) |
+| GET | `/doacoes?status=&categoria_id=&validade_ate=` | Autenticado | Doador: as suas · Instituição: as disponíveis · Admin: todas |
+| GET | `/doacoes/:id` | Autenticado | Detalhe (respeitando a visibilidade do perfil) |
+| POST | `/doacoes` | Doador, Admin | Publica doação |
+| PUT | `/doacoes/:id` | Doador (dono), Admin | Edita doação disponível ou expirada |
+| DELETE | `/doacoes/:id` | Doador (dono), Admin | Exclui doação disponível ou expirada |
+| GET | `/reservas` | Autenticado | Instituição: as suas · Doador: as de suas doações · Admin: todas |
+| POST | `/reservas` | Instituição aprovada | Reserva uma doação (`{ "doacao_id": 1 }`) |
+| PUT | `/reservas/:id/cancelar` | Instituição (dona), Admin | Cancela a reserva |
+| PUT | `/reservas/:id/retirada` | Doador (dono da doação), Admin | Confirma a retirada |
 
 ---
 
-## 9. Cronograma das entregas
+## 10. Front-end
+
+Interface em HTML, CSS e JavaScript puro, servida pela própria API em `http://localhost:3000/login.html`.
+
+| Página | Perfil | O que faz |
+|---|---|---|
+| `login.html` / `cadastro.html` | Público | Autenticação e criação de conta (os campos da instituição só aparecem quando o perfil é instituição) |
+| `doador.html` | Doador | Formulário de doação (criar e editar), lista com filtros, exclusão, confirmação de retirada e resumo |
+| `instituicao.html` | Instituição | Aviso do status de aprovação, doações disponíveis com filtros, reserva, e "Minhas reservas" com cancelamento |
+| `admin.html` | Administrador | Abas de instituições (aprovar/recusar), doações, categorias (CRUD) e usuários, com resumo |
+
+- **DOM:** as listas e os formulários são montados e atualizados por JavaScript (`el()` em `api.js`), sem `innerHTML`, de modo que textos digitados pelos usuários são exibidos como texto e não como código.
+- **Fetch:** todas as chamadas passam pela função `api()`, que envia o token JWT, trata erros e redireciona para o login quando a sessão expira.
+- **Navegação por perfil:** cada página confere o perfil ao abrir, mas isso é só conforto de navegação; a segurança real está na API.
+
+---
+
+## 11. Fontes
+
+1. UNEP – Programa das Nações Unidas para o Meio Ambiente. *Food Waste Index Report 2024* (publicado em 27/03/2024). https://www.unep.org/index.php/news-and-stories/press-release/world-squanders-over-1-billion-meals-day-un-report
+2. IBGE. *PNAD Contínua – Segurança Alimentar 2024* (divulgada em 10/10/2025). https://agenciadenoticias.ibge.gov.br/pt/agencia-noticias/44728-mais-de-dois-milhoes-de-lares-saem-da-inseguranca-alimentar-em-2024.html
+
+---
+
+## 12. Cronograma das entregas
 
 | Entrega | Foco | Situação |
 |---|---|---|
 | 1 | Problema, proposta e estrutura inicial | Concluída |
 | 2 | Banco de dados, autenticação e JWT | Concluída |
-| 3 | CRUD, integração e permissões | Pendente |
+| 3 | CRUD, integração e permissões | Concluída |
 | 4 | Projeto completo, documentação e apresentação | Pendente |

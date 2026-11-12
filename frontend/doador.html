@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Doador | Ponte Alimentar</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-conteudo">
+      <span class="marca">Ponte Alimentar</span>
+      <div class="topo-usuario">
+        <span id="nome-usuario"></span>
+        <button class="btn btn-sec btn-peq" id="btn-sair" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="resumo" id="resumo"></div>
+
+    <div class="grade">
+      <section class="painel">
+        <h2 id="titulo-form">Nova doação</h2>
+        <form id="form-doacao" novalidate>
+          <label for="titulo">Título</label>
+          <input id="titulo" type="text" maxlength="150" placeholder="Ex.: Pães do dia" required>
+
+          <label for="categoria">Categoria</label>
+          <select id="categoria" required></select>
+
+          <div class="linha-2">
+            <div>
+              <label for="quantidade">Quantidade</label>
+              <input id="quantidade" type="number" min="0.01" step="0.01" required>
+            </div>
+            <div>
+              <label for="unidade">Unidade</label>
+              <select id="unidade" required>
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="L">L</option>
+                <option value="ml">ml</option>
+                <option value="un">unidade(s)</option>
+                <option value="porcoes">porção(ões)</option>
+                <option value="caixas">caixa(s)</option>
+              </select>
+            </div>
+          </div>
+
+          <label for="validade">Validade do alimento</label>
+          <input id="validade" type="date" required>
+
+          <label for="retirada">Retirar até</label>
+          <input id="retirada" type="datetime-local" required>
+
+          <label for="descricao">Descrição (opcional)</label>
+          <textarea id="descricao" maxlength="1000" placeholder="Estado do alimento, embalagem, observações..."></textarea>
+
+          <button class="btn btn-bloco" type="submit" id="btn-salvar">Publicar doação</button>
+          <button class="btn btn-sec btn-bloco escondido" type="button" id="btn-cancelar-edicao">Cancelar edição</button>
+          <div id="msg-form" class="aviso erro msg-form escondido"></div>
+        </form>
+      </section>
+
+      <section>
+        <div class="filtros">
+          <div>
+            <label for="filtro-status">Filtrar por status</label>
+            <select id="filtro-status">
+              <option value="">Todos</option>
+              <option value="disponivel">Disponíveis</option>
+              <option value="reservada">Reservadas</option>
+              <option value="retirada">Retiradas</option>
+              <option value="expirada">Expiradas</option>
+            </select>
+          </div>
+          <div>
+            <label for="filtro-categoria">Filtrar por categoria</label>
+            <select id="filtro-categoria"></select>
+          </div>
+        </div>
+        <div id="lista" class="lista"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/doador.js"></script>
+</body>
+</html>

@@ -7,7 +7,7 @@ function autenticar(req, res, next) {
   const [tipo, token] = cabecalho.split(' ');
 
   if (tipo !== 'Bearer' || !token) {
-    return res.status(401).json({ erro: 'Token de autenticacao nao informado.' });
+    return res.status(401).json({ erro: 'Token de autenticação não informado.' });
   }
 
   try {
@@ -17,8 +17,8 @@ function autenticar(req, res, next) {
   } catch (erro) {
     const mensagem =
       erro.name === 'TokenExpiredError'
-        ? 'Token expirado. Faca login novamente.'
-        : 'Token invalido.';
+        ? 'Token expirado. Faça login novamente.'
+        : 'Token inválido.';
     return res.status(401).json({ erro: mensagem });
   }
 }

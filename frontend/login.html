@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar | Ponte Alimentar</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>Ponte Alimentar</h1>
+      <p class="sub">Conectando quem tem alimento sobrando a quem precisa.</p>
+
+      <form id="form-login" novalidate>
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="username" required>
+
+        <label for="senha">Senha</label>
+        <input id="senha" type="password" autocomplete="current-password" required>
+
+        <button class="btn btn-bloco" type="submit" id="btn-entrar">Entrar</button>
+        <div id="msg" class="aviso erro msg-form escondido"></div>
+      </form>
+
+      <p class="auth-rodape">Ainda não tem conta? <a href="cadastro.html">Cadastre-se</a></p>
+    </div>
+  </div>
+  <script src="js/api.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>
