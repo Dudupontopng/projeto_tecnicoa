@@ -25,6 +25,7 @@
       <button class="aba" type="button" data-alvo="doacoes">Doações</button>
       <button class="aba" type="button" data-alvo="categorias">Categorias</button>
       <button class="aba" type="button" data-alvo="usuarios">Usuários</button>
+      <button class="aba" type="button" data-alvo="indicadores">Indicadores</button>
     </div>
 
     <section data-secao="instituicoes" class="painel">
@@ -74,11 +75,37 @@
 
     <section data-secao="usuarios" class="painel escondido">
       <h2>Usuários</h2>
+      <form id="form-usuario" class="form-inline escondido" novalidate>
+        <h3 id="titulo-usuario">Editar usuário</h3>
+        <div class="linha-2">
+          <div>
+            <label for="u-nome">Nome</label>
+            <input id="u-nome" type="text">
+          </div>
+          <div>
+            <label for="u-email">E-mail</label>
+            <input id="u-email" type="email">
+          </div>
+        </div>
+        <label for="u-senha">Nova senha (deixe em branco para manter a atual)</label>
+        <input id="u-senha" type="password" autocomplete="new-password" minlength="8">
+        <div class="acoes">
+          <button class="btn" type="submit">Salvar</button>
+          <button class="btn btn-sec" type="button" id="u-cancelar">Cancelar</button>
+        </div>
+        <div id="u-msg" class="aviso erro msg-form escondido"></div>
+      </form>
       <div id="lista-usuarios" class="tabela-wrap"></div>
+    </section>
+
+    <section data-secao="indicadores" class="painel escondido">
+      <h2>Indicadores da plataforma</h2>
+      <div id="indicadores" class="indicadores"></div>
     </section>
   </main>
 
   <script src="js/api.js"></script>
+  <script src="js/indicadores.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>

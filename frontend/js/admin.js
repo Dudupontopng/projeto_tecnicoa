@@ -167,14 +167,84 @@ function iniciar() {
   // ---------- usuários ----------
   const areaUsuarios = document.getElementById('lista-usuarios');
 
+  const formUsuario = document.getElementById('form-usuario');
+  const msgUsuario = document.getElementById('u-msg');
+  let editandoUsuarioId = null;
+
   async function carregarUsuarios() {
     try {
       const lista = await api('/usuarios');
       limpar(areaUsuarios);
       areaUsuarios.append(tabela(
-        ['Nome', 'E-mail', 'Perfil', 'Cadastro'],
-        lista.map((u) => [u.nome, u.email, badge(u.nivel), formatarDataHora(u.criado_em)])
+        ['Nome', 'E-mail', 'Perfil', 'Cadastro', 'Ações'],
+        lista.map((u) => [
+          u.nome, u.email, badge(u.nivel), formatarDataHora(u.criado_em),
+          el('div', { class: 'acoes', style: 'margin:0' },
+            botao('Editar', 'btn-sec', () => editarUsuario(u)),
+            // Não há botão de excluir para a própria conta do administrador logado.
+            u.id !== usuario.id ? botao('Excluir', 'btn-perigo', () => excluirUsuario(u)) : null
+          ),
+        ])
       ));
+    } catch (erro) {
+      mostrarMensagem(erro.message, 'erro');
+    }
+  }
+
+  function fecharFormUsuario() {
+    editandoUsuarioId = null;
+    formUsuario.reset();
+    formUsuario.classList.add('escondido');
+    msgUsuario.classList.add('escondido');
+  }
+
+  function editarUsuario(u) {
+    editandoUsuarioId = u.id;
+    document.getElementById('titulo-usuario').textContent = `Editando ${u.nome} (${ROTULOS[u.nivel]})`;
+    document.getElementById('u-nome').value = u.nome;
+    document.getElementById('u-email').value = u.email;
+    document.getElementById('u-senha').value = '';
+    msgUsuario.classList.add('escondido');
+    formUsuario.classList.remove('escondido');
+    formUsuario.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  formUsuario.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    msgUsuario.classList.add('escondido');
+    const corpo = {
+      nome: document.getElementById('u-nome').value,
+      email: document.getElementById('u-email').value,
+    };
+    const senha = document.getElementById('u-senha').value;
+    if (senha) corpo.senha = senha;
+    try {
+      await api(`/usuarios/${editandoUsuarioId}`, { metodo: 'PUT', corpo });
+      mostrarMensagem('Usuário atualizado.');
+      fecharFormUsuario();
+      carregarUsuarios();
+    } catch (erro) {
+      msgUsuario.textContent = erro.message;
+      msgUsuario.classList.remove('escondido');
+    }
+  });
+
+  document.getElementById('u-cancelar').addEventListener('click', fecharFormUsuario);
+
+  async function excluirUsuario(u) {
+    if (!confirm(`Excluir o usuário "${u.nome}"? Esta ação não pode ser desfeita.`)) return;
+    const ok = await executar(() => api(`/usuarios/${u.id}`, { metodo: 'DELETE' }), 'Usuário excluído.');
+    if (ok) {
+      if (editandoUsuarioId === u.id) fecharFormUsuario();
+      carregarUsuarios();
+      carregarResumo();
+    }
+  }
+
+  // ---------- indicadores ----------
+  async function carregarIndicadores() {
+    try {
+      renderIndicadores(document.getElementById('indicadores'), await api('/indicadores'));
     } catch (erro) {
       mostrarMensagem(erro.message, 'erro');
     }
@@ -188,6 +258,7 @@ function iniciar() {
     if (aba === 'doacoes') carregarDoacoes();
     if (aba === 'categorias') carregarCategorias();
     if (aba === 'usuarios') carregarUsuarios();
+    if (aba === 'indicadores') carregarIndicadores();
   });
 
   carregarResumo();
