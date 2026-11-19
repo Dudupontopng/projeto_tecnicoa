@@ -46,6 +46,7 @@ function iniciar() {
       mostrarMensagem(erro.message, 'erro');
     }
     atualizarResumo();
+    carregarIndicadores();
   }
 
   // O resumo usa sempre a lista completa (sem filtros) para os totais.
@@ -64,6 +65,14 @@ function iniciar() {
       caixas.forEach(([rotulo, valor]) =>
         resumo.append(el('div', {}, el('strong', {}, String(valor)), el('span', {}, rotulo)))
       );
+    } catch {
+      /* o erro já aparece na listagem */
+    }
+  }
+
+  async function carregarIndicadores() {
+    try {
+      renderIndicadores(document.getElementById('indicadores'), await api('/indicadores'));
     } catch {
       /* o erro já aparece na listagem */
     }
