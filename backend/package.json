@@ -1,12 +1,13 @@
 {
   "name": "ponte-alimentar-backend",
-  "version": "0.3.0",
-  "description": "API da Ponte Alimentar - Entrega 3 (CRUD, reservas e permissoes)",
+  "version": "1.0.0",
+  "description": "API da Ponte Alimentar - Entrega 4 (versao final)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "seed": "node database/seed.js"
+    "seed": "node database/seed.js",
+    "test": "node tests/api.test.js"
   },
   "license": "ISC",
   "dependencies": {
