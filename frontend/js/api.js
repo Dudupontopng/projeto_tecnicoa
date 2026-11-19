@@ -199,3 +199,9 @@ function ativarAbas(aoTrocar) {
     });
   });
 }
+
+// Rede de segurança: qualquer erro que escape do tratamento aparece como aviso, sem travar a tela.
+window.addEventListener('unhandledrejection', (evento) => {
+  console.error(evento.reason);
+  mostrarMensagem('Ocorreu um erro inesperado. Tente novamente.', 'erro');
+});
