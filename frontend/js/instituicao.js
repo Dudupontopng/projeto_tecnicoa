@@ -137,8 +137,17 @@ async function iniciar() {
     filtroValidade.value = '';
     carregarDisponiveis();
   });
+  async function carregarHistorico() {
+    try {
+      renderIndicadores(document.getElementById('indicadores'), await api('/indicadores'));
+    } catch (erro) {
+      mostrarMensagem(erro.message, 'erro');
+    }
+  }
+
   ativarAbas((aba) => {
     if (aba === 'reservas') carregarReservas();
+    else if (aba === 'historico') carregarHistorico();
     else carregarDisponiveis();
   });
 

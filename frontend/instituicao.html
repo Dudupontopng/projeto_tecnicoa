@@ -23,6 +23,7 @@
     <div class="abas">
       <button class="aba ativa" type="button" data-alvo="disponiveis">Doações disponíveis</button>
       <button class="aba" type="button" data-alvo="reservas">Minhas reservas</button>
+      <button class="aba" type="button" data-alvo="historico">Meu histórico</button>
     </div>
 
     <section data-secao="disponiveis">
@@ -45,9 +46,15 @@
     <section data-secao="reservas" class="escondido">
       <div id="lista-reservas" class="lista"></div>
     </section>
+
+    <section data-secao="historico" class="painel escondido">
+      <h2>Meu histórico</h2>
+      <div id="indicadores" class="indicadores"></div>
+    </section>
   </main>
 
   <script src="js/api.js"></script>
+  <script src="js/indicadores.js"></script>
   <script src="js/instituicao.js"></script>
 </body>
 </html>
